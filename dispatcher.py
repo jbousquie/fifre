@@ -13,13 +13,13 @@ class Dispatcher:
     # Gestion des messages depuis et vers les clients
     # -----------------------------------------------
 
-    def parseMessage(msg):
+    def parse_message(msg):
         return
 
-    def acknowledge(msg):
+    def acknowledge_message(msg):
         return
     
-    def reportClient():
+    def report_to_client():
         return
 
 
@@ -28,17 +28,17 @@ class Dispatcher:
 
 
     # enregistre les sous-fifres connus dans la liste
-    def enrollSsFifres():
+    def enroll_ssFifres():
         return
 
     # ordres donnés au sous-fifre
     def order():
         return
 
-    def stackOrder():
+    def store_order():
         return
 
-    def unstackOrder():
+    def remove_order():
         return
     
 

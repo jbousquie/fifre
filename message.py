@@ -9,9 +9,9 @@ class Message:
         self.date = date
         self.domain = domain
         self.content = content
-        self.msgId = self.generateUniqueId()
+        self.msgId = self.generate_unique_id()
 
     # generate an unique random string
-    def generateUniqueId(self):
+    def generate_unique_id(self):
         id = str(uuid.uuid4())
         return id

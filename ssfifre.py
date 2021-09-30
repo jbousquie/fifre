@@ -2,9 +2,9 @@
 
 class SousFifre():
 
-    def executeOrder():
+    def execute_order():
         return
     
-    def reportDispatcher():
+    def report_dispatcher():
         return
     
