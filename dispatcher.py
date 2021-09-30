@@ -1,5 +1,7 @@
 # Classe Dispatcher
 
+# Le dispatcher récupère les messages des transports/clients, les analyse et les transforme en ordres pour les sous-fifres
+
 
 class Dispatcher:
 

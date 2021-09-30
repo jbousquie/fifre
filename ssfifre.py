@@ -2,6 +2,9 @@
 
 class SousFifre():
 
+    def __init__(self) -> None:
+        pass
+
     def execute_order():
         return
     
