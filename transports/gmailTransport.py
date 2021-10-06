@@ -8,12 +8,6 @@
 
 from pprint import pp as pp
 import email
-import datetime
-import sys
-# import dégueulasse du module situé dans le répertoire parent, merci Python
-# note : si le dispatcher lance les transports, cet import ne sera peut-être plus nécessaire (import de Message dans Dispatcher)
-import os, sys
-sys.path.insert(1, os.getcwd()) 
 from message import Message
 
 IMAP_HOST = "imap.gmail.com"
@@ -31,9 +25,11 @@ AUTHORIZED = [
 class GmailTransport:
 
     transport_name = "gmail"
+    response_order_not_found = "Aucun ordre trouvé dans le texte du mail."
 
     # contructeur
-    def __init__(self) -> None:
+    def __init__(self, dispatcher) -> None:
+        self.dispatcher = dispatcher
         pass
 
 
@@ -90,7 +86,11 @@ class GmailTransport:
 
                 if any_order:
                     dispatcher_msg = Message(username, GmailTransport.transport_name, msg_date, subject, msg_content, msg_id)
-                    pp(dispatcher_msg.to_json())
+                    self.dispatcher.parse_message(dispatcher_msg)
+
+                else:
+                    self.instant_response(GmailTransport.response_order_not_found)
+
 
             # marque les messages comme non lus pour le test suivant
             client.remove_flags(messages, '\Seen')
@@ -109,7 +109,9 @@ class GmailTransport:
                 first = False
         return qs
 
+    # Envoie directement un mail au client pour le notifier du message passé en paramètre
+    def instant_response(self, resp_msg):
+        # SMTP
+        pass
 
-# TEST
-gmt = GmailTransport()
-gmt.getMails()
+

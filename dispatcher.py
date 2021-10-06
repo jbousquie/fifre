@@ -3,6 +3,7 @@
 # Le dispatcher récupère les messages des transports/clients, les analyse et les transforme en ordres pour les sous-fifres
 
 
+
 class Dispatcher:
 
     # constructeur
@@ -15,13 +16,19 @@ class Dispatcher:
     # Gestion des messages depuis et vers les clients
     # -----------------------------------------------
 
-    def parse_message(msg):
+    def accept_message(self, msg):
         return
 
-    def acknowledge_message(msg):
+    # analyse un message en provenance du client
+    def parse_message(self, msg):
+        return
+
+    # accuse réception auprès du client du message transmis
+    def acknowledge_message(self, msg):
         return
     
-    def report_to_client():
+    # envoie un message de rapport au client
+    def report_to_client(self):
         return
 
 
@@ -30,18 +37,21 @@ class Dispatcher:
 
 
     # enregistre les sous-fifres connus dans la liste
-    def enroll_ssFifres():
+    def enroll_ssFifres(self):
         return
 
     # ordres donnés au sous-fifre
-    def order():
+    def order(self):
         return
 
-    def store_order():
+    # sauve un ordre dans la liste des ordres transmis au sous-fifre
+    def store_order(self):
         return
 
-    def remove_order():
+    # retire un ordre sauvé de la liste des ordres transmis
+    def remove_order(self):
         return
     
 
     
+
