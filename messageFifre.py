@@ -3,14 +3,15 @@ import uuid
 import json
 from datetime import datetime
 
-class Message:
+class MessageFifre:
 
-    def __init__(self, username, transport, msgDate, domain, content, transportMsgId):
+    def __init__(self, username, transport, to, msgDate, subject, content, transportMsgId):
         now = datetime.now()
         self.username = username
         self.transport = transport
+        self.to = to
         self.msgDate = msgDate                          # date du mail
-        self.domain = domain
+        self.subject = subject
         self.content = content
         self.transportMsgId = transportMsgId            # Id d'origine provenant du transport s'il existe
         self.msgId = self.generate_unique_id()          # Id interne à l'application
@@ -24,6 +25,7 @@ class Message:
     def store(self):
         pass
 
+    # Renvoie une string JSON de l'objet message
     def to_json(self):
         serialized = json.dumps(self.__dict__)
         return serialized

@@ -1,7 +1,8 @@
 # Classe Fifre
+# gère l'execution des transports 
 
 from dispatcher import Dispatcher
-from message import Message
+from messageFifre import MessageFifre
 from order import Order
 from ssfifre import SousFifre
 from transports.gmailTransport import GmailTransport

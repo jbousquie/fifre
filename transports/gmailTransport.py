@@ -6,13 +6,27 @@
 # Un message est un ensemble de commandes écrites dans le corps du mail, chaque ligne précédée d'un caractère d'identification (ex "!")
 # Le domaine sur lequel passer ces commandes doit être mentionné dans le sujet du mail
 
-from pprint import pp as pp
 import email
-from message import Message
+from email.header import Header
+from email.mime.text import MIMEText
+from messageFifre import MessageFifre
+from imapclient import IMAPClient
+import smtplib
+import ssl
+from datetime import datetime
+
+from pprint import pp as pp
+
+
 
 IMAP_HOST = "imap.gmail.com"
 IMAP_USER = 'fifre@iut-rodez.fr'
 IMAP_PWD = 'Fifre789'
+
+SMTP_HOST = 'smtp.gmail.com'
+SMTP_TLSSSL_PORT = 465
+SMTP_USER = IMAP_USER
+SMTP_PWD = IMAP_PWD
 
 AUTHORIZED = [
     'andre.lasfargues@iut-rodez.fr', 'sylvain.delpech@iut-rodez.fr', 'jerome.bousquie@iut-rodez.fr', 
@@ -26,6 +40,8 @@ class GmailTransport:
 
     transport_name = "gmail"
     response_order_not_found = "Aucun ordre trouvé dans le texte du mail."
+    log_file = "./transports/gmailTransport.log"
+
 
     # contructeur
     def __init__(self, dispatcher) -> None:
@@ -34,7 +50,7 @@ class GmailTransport:
 
 
     def getMails(self):
-        from imapclient import IMAPClient
+        
         with IMAPClient(IMAP_HOST, 993, True, True) as client:
             client.login(IMAP_USER, IMAP_PWD)
             
@@ -85,8 +101,9 @@ class GmailTransport:
                         msg_content = msg_content + stripped[2:].lstrip() + '\n'
 
                 if any_order:
-                    dispatcher_msg = Message(username, GmailTransport.transport_name, msg_date, subject, msg_content, msg_id)
-                    self.dispatcher.parse_message(dispatcher_msg)
+                    dispatcher_msg = MessageFifre(username, GmailTransport.transport_name, IMAP_USER, msg_date, subject, msg_content, msg_id)
+                    self.log(dispatcher_msg.to_json())
+                    self.dispatcher.accept_message(dispatcher_msg)
 
                 else:
                     self.instant_response(GmailTransport.response_order_not_found)
@@ -94,6 +111,10 @@ class GmailTransport:
 
             # marque les messages comme non lus pour le test suivant
             client.remove_flags(messages, '\Seen')
+            now = datetime.now()
+            snd_date = now.strftime('%Y-%m-%d %H:%M:%S')
+            snd_msg = MessageFifre(SMTP_USER, GmailTransport.transport_name, username, snd_date, 'Réponse', msg_content, 'zzzzz')
+            self.sendMail(snd_msg)
 
 
 
@@ -110,8 +131,27 @@ class GmailTransport:
         return qs
 
     # Envoie directement un mail au client pour le notifier du message passé en paramètre
+    # Ou mettre ça côté dispatcher ..?
     def instant_response(self, resp_msg):
         # SMTP
         pass
 
+    # Logue le message dans le fichier de log
+    def log(self, msgJson):
+        with open(GmailTransport.log_file, 'a') as log_file:
+            line = msgJson + '\n'
+            log_file.write(line)
+
+    def sendMail(self, msgObj):
+        msg = MIMEText(msgObj.content)
+        msg['Subject'] = Header(msgObj.subject, 'utf-8')
+        msg['From'] = msgObj.username
+        msg['To'] = msgObj.to
+
+        ssl_context = ssl.create_default_context()
+        server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_TLSSSL_PORT, context=ssl_context)
+        server.ehlo_or_helo_if_needed()
+        server.login(SMTP_USER, SMTP_PWD)
+        server.sendmail(msg['From'], msg['To'], msg.as_string())
+        server.quit()
 
