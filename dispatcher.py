@@ -3,6 +3,9 @@
 # Le dispatcher récupère les messages des transports/clients, les analyse et les transforme en ordres pour les sous-fifres
 from typing import List
 from messageFifre import MessageFifre
+from ssfifre import SousFifre
+from tools import Tools
+
 
 class Dispatcher:
 
@@ -10,9 +13,11 @@ class Dispatcher:
     domain_requester_str: str = '???'    # string de requête de la liste des domaines
 
     # constructeur
-    def __init__(self):
+    def __init__(self, fifre):
         # liste des sous-fifres connus du dispatcher
+        self.fifre = fifre
         self.ssfifres: List = []
+        self.domains = ['winlog', 'proxmox']
 
 
 
@@ -37,16 +42,34 @@ class Dispatcher:
         return
 
     # analyse un objet message : extraction des commandes
-    def parse_message(self, msgObj: MessageFifre) -> None:
+    # renvoie un message de compte-rendu à retourner au client
+    def parse_message(self, msgObj: MessageFifre) -> MessageFifre:
         print(msgObj.content)
-        return
+        sender = self.fifre.username
+        transport = msgObj.transport
+        recipient = msgObj.username
+        domain = msgObj.subject
+
+        # test domaine
+        if domain not in self.domains:
+            msgText = 'Domaine ' + domain + 'non connu.'
+            subject = "Erreur domaine"
+        else:
+            ssfifre = SousFifre(self, domain)
+            ssfifre_report = ssfifre.accept_commands(msgObj)
+
+            
+        responseDate = Tools.stringNow()    
+        msgId = Tools.generate_unique_id()
+        msgResponse = MessageFifre(sender, transport, recipient, responseDate, subject, msgText, msgId)
+        return msgResponse
 
     # accuse réception auprès du client du message transmis
     def acknowledge_message(self, msgObj: MessageFifre) -> None:
         return
     
     # envoie un message de rapport au client
-    def report_to_client(self, msgText: str) -> None:
+    def report_to_client(self, msgObj: MessageFifre) -> None:
         return
 
 

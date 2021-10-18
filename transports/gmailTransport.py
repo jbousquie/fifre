@@ -5,21 +5,23 @@
 # Le transport Gmail récupère les mails non lus  (IMAP) et en fait autant de messages à destination du dispatcheur
 # Un message est un ensemble de commandes écrites dans le corps du mail, chaque ligne précédée d'un caractère d'identification (ex "!")
 # Le domaine sur lequel passer ces commandes doit être mentionné dans le sujet du mail
-from email.message import Message
 from typing import Dict, List, Tuple
-
 
 import email
 from email.header import Header
 from email.mime.text import MIMEText
+from email.message import Message
 
 from imapclient.response_types import SearchIds
-from dispatcher import Dispatcher
-from messageFifre import MessageFifre
 from imapclient import IMAPClient
 from smtplib import SMTP_SSL
 import ssl
 from datetime import datetime
+
+from dispatcher import Dispatcher
+from messageFifre import MessageFifre
+from tools import Tools
+
 
 from pprint import pp as pp
 
@@ -120,10 +122,9 @@ class GmailTransport:
 
             # marque les messages comme non lus pour le test suivant
             client.remove_flags(messages, '\Seen')
-            now: datetime = datetime.now()
-            snd_date: str = now.strftime('%Y-%m-%d %H:%M:%S')
-            snd_msg: MessageFifre = MessageFifre(SMTP_USER, GmailTransport.transport_name, username, snd_date, 'Réponse de Fifre', msg_content, 'zzzzz')
-            self.sendMail(snd_msg)
+            #snd_date: str = Tools.stringNow()
+            #snd_msg: MessageFifre = MessageFifre(SMTP_USER, GmailTransport.transport_name, username, snd_date, 'Réponse de Fifre', msg_content, 'zzzzz')
+            #self.sendMail(snd_msg)
 
 
 
