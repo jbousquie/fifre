@@ -16,11 +16,9 @@ from imapclient.response_types import SearchIds
 from imapclient import IMAPClient
 from smtplib import SMTP_SSL
 import ssl
-from datetime import datetime
 
-from dispatcher import Dispatcher
 from messageFifre import MessageFifre
-from tools import Tools
+#from tools import Tools
 
 
 from pprint import pp as pp
@@ -55,7 +53,7 @@ class GmailTransport:
 
     # contructeur
     def __init__(self, dispatcher) -> None:
-        self.dispatcher: Dispatcher = dispatcher
+        self.dispatcher = dispatcher
         pass
 
 
