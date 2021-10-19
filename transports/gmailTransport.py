@@ -8,9 +8,6 @@
 from typing import Dict, List, Tuple
 
 import email
-from email.header import Header
-from email.mime.text import MIMEText
-from email.message import Message
 
 from imapclient.response_types import SearchIds
 from imapclient import IMAPClient
@@ -19,7 +16,6 @@ import ssl
 
 from messageFifre import MessageFifre
 #from tools import Tools
-
 
 from pprint import pp as pp
 
@@ -77,7 +73,7 @@ class GmailTransport:
             for mail_id, data in client.fetch(messages, ['ENVELOPE', 'BODY[TEXT]']).items():
 
                 envelope = data[b'ENVELOPE']
-                raw_body: Message = email.message_from_bytes(data[b'BODY[TEXT]'])
+                raw_body: email.Message = email.message_from_bytes(data[b'BODY[TEXT]'])
 
                 pp('inbox mail number : ' + str(mail_id))
                 msg_date = envelope[0].isoformat()
@@ -151,8 +147,8 @@ class GmailTransport:
             log_file.write(line)
 
     def sendMail(self, msgObj: MessageFifre) -> None:
-        msg: MIMEText = MIMEText(msgObj.content)
-        msg['Subject'] = Header(msgObj.subject, GmailTransport.utf8str)
+        msg: email.mime.text.MIMEText = email.mime.text.MIMEText(msgObj.content)
+        msg['Subject'] = email.header.Header(msgObj.subject, GmailTransport.utf8str)
         msg['From'] = msgObj.username
         msg['To'] = msgObj.to
 
