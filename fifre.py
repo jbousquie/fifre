@@ -1,11 +1,14 @@
 # Classe Dispatcher
 
 # Le dispatcher récupère les messages des transports/clients, les analyse et les transforme en ordres pour les sous-fifres
+from pprint import PrettyPrinter
 from typing import List
 from messageFifre import MessageFifre
 from transports.gmailTransport import GmailTransport
 
 from tools import Tools
+
+from pprint import pp as pp
 
 
 class Dispatcher:
@@ -16,10 +19,9 @@ class Dispatcher:
     # constructeur
     def __init__(self, fifre):
         # liste des sous-fifres connus du dispatcher
-        self.fifre = fifre
+        self.fifre: Fifre = fifre
         self.ssfifres: List = []
         self.domains = ['winlog', 'proxmox']
-
 
 
     # Gestion des messages depuis et vers les clients
@@ -27,7 +29,7 @@ class Dispatcher:
 
     # accepte un objet message venant du client et teste immédiatement le domaine demandé. Domaine écrit comme sujet du message
     def accept_message(self, msgObj: MessageFifre) -> None:
-        requested_domain: str = msgObj.subject.lower()
+        requested_domain: str = (msgObj.subject).lower()
         # si demande de la liste des domaines
         if requested_domain == Dispatcher.domain_requester_str:
             msg_text: str = 'Domaines possibles :\n'
@@ -45,24 +47,18 @@ class Dispatcher:
     # analyse un objet message : extraction des commandes
     # renvoie un message de compte-rendu à retourner au client
     def parse_message(self, msgObj: MessageFifre) -> MessageFifre:
-        print(msgObj.content)
         sender = self.fifre.username
         transport = msgObj.transport
         recipient = msgObj.username
-        domain = msgObj.subject
+        domain = (msgObj.subject).lower()
 
-        # test domaine
-        if domain not in self.domains:
-            msgText = 'Domaine ' + domain + 'non connu.'
-            subject = "Erreur domaine"
-        else:
-            ssfifre = SousFifre(self, domain)
-            ssfifre_report = ssfifre.accept_commands(msgObj)
+        ssfifre = SousFifre(self, domain)
+        ssfifre_report = ssfifre.accept_commands(msgObj)
 
-            
         responseDate = Tools.stringNow()    
         msgId = Tools.generate_unique_id()
-        msgResponse = MessageFifre(sender, transport, recipient, responseDate, subject, msgText, msgId)
+        msgText = "voici ma réponse"
+        msgResponse = MessageFifre(sender, transport, recipient, responseDate, domain, msgText, msgId)
         return msgResponse
 
     # accuse réception auprès du client du message transmis
@@ -96,26 +92,27 @@ class Dispatcher:
     
 
 
+
 # Classe Sous-Fifre
 # Le sous-fifre va importer le script dédié à la communication vers le service distant
 # et lancer son exécution asynchrone
-
-from messageFifre import MessageFifre
-
-
 class SousFifre:
 
-    def __init__(self, dispatcher, domain: str):
-        self.dispatcher = dispatcher
+    def __init__(self, dispatcher: Dispatcher, domain: str):
+        self.dispatcher: Dispatcher = dispatcher
         self.domain: str = domain
         return
 
     # Analyse le message de commande sur le domaine
     # Le découpe en ordres
     # Retourne un message de rapport : erreurs ? etc ?
-    def accept_commands(msgObj: MessageFifre) -> MessageFifre:
+    def accept_commands(self, msgObj: MessageFifre) -> MessageFifre:
+        content = msgObj.content
+        orders_str = content.split('\n')
+        for order_str in orders_str:
+            print(order_str)
 
-        msg_report: MessageFifre
+        msg_report: MessageFifre = None
         return msg_report
 
 
@@ -130,9 +127,6 @@ class SousFifre:
 
 # Classe Fifre
 # gère l'execution des transports 
-
-
-
 class Fifre:
     
     username = 'fifre@iut-rodez.fr'

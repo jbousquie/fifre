@@ -39,27 +39,23 @@ AUTHORIZED = [
 
 
 class GmailTransport:
-
     transport_name = "gmail"
     response_order_not_found = "Aucun ordre trouvé dans le texte du mail."
     log_file = "./transports/gmailTransport.log"
     utf8str: str = 'utf-8'
-
-
 
     # contructeur
     def __init__(self, dispatcher) -> None:
         self.dispatcher = dispatcher
         pass
 
-
-    def getMails(self) -> None:
-        
+    # récupération mails
+    def getMails(self) -> None:       
         with IMAPClient(IMAP_HOST, 993, True, True) as client:
             client.login(IMAP_USER, IMAP_PWD)
             
             select_info: Dict = client.select_folder('INBOX')
-            print('%d messages in INBOX' % select_info[b'EXISTS'])
+            #print('%d messages in INBOX' % select_info[b'EXISTS'])
 
             charset: str = GmailTransport.utf8str
             querystring: str = self.gmail_querystring(AUTHORIZED)
@@ -75,15 +71,14 @@ class GmailTransport:
                 envelope = data[b'ENVELOPE']
                 raw_body: email.Message = email.message_from_bytes(data[b'BODY[TEXT]'])
 
-                pp('inbox mail number : ' + str(mail_id))
+                #pp('inbox mail number : ' + str(mail_id))
                 msg_date = envelope[0].isoformat()
                 subject: str = envelope[1].decode(charset)
                 tuple_from: Tuple = envelope[2][0]
                 sender: str = tuple_from[2].decode(charset)
                 host: str = tuple_from[3].decode(charset)
                 msg_id: str = envelope[9].decode(charset)
-
-                
+       
                 # traitement du corps du message 
                 if raw_body.is_multipart():
                     for part in raw_body.walk():
@@ -108,8 +103,8 @@ class GmailTransport:
                 if any_order:
                     dispatcher_msg:  MessageFifre = MessageFifre(username, GmailTransport.transport_name, IMAP_USER, msg_date, subject, msg_content, msg_id)
                     self.log(dispatcher_msg.to_json())
-                    self.dispatcher.accept_message(dispatcher_msg)
-
+                    dispatcher = self.dispatcher
+                    dispatcher.accept_message(dispatcher_msg)
                 else:
                     self.instant_response(GmailTransport.response_order_not_found)
 
@@ -119,7 +114,6 @@ class GmailTransport:
             #snd_date: str = Tools.stringNow()
             #snd_msg: MessageFifre = MessageFifre(SMTP_USER, GmailTransport.transport_name, username, snd_date, 'Réponse de Fifre', msg_content, 'zzzzz')
             #self.sendMail(snd_msg)
-
 
 
     # Renvoie une querystring gmail de sélection des messages non lus des émetteurs autorisés uniquement
