@@ -38,7 +38,7 @@ class Dispatcher:
             self.report_to_client(msg_text)
         # si domaine demandé dans la liste des domaines
         elif requested_domain in Dispatcher.domains:
-            self.parse_message(msgObj)
+            self.parse_content(msgObj)
         else:
             msg_text: str = 'Domaine demandé "' + requested_domain + '" non connu'
             self.report_to_client(msg_text)
@@ -46,14 +46,19 @@ class Dispatcher:
 
     # analyse un objet message : extraction des commandes
     # renvoie un message de compte-rendu à retourner au client
-    def parse_message(self, msgObj: MessageFifre) -> MessageFifre:
+    def parse_content(self, msgObj: MessageFifre) -> MessageFifre:
         sender = self.fifre.username
         transport = msgObj.transport
         recipient = msgObj.username
+        content = msgObj.content
         domain = (msgObj.subject).lower()
 
-        ssfifre = SousFifre(self, domain)
-        ssfifre_report = ssfifre.accept_commands(msgObj)
+        orders_str = content.split('\n')
+        for order_str in orders_str:
+            print(order_str)
+
+        # ssfifre = SousFifre(self, domain)
+        # ssfifre_report = ssfifre.accept_commands(msgObj)
 
         responseDate = Tools.stringNow()    
         msgId = Tools.generate_unique_id()
@@ -102,18 +107,6 @@ class SousFifre:
         self.dispatcher: Dispatcher = dispatcher
         self.domain: str = domain
         return
-
-    # Analyse le message de commande sur le domaine
-    # Le découpe en ordres
-    # Retourne un message de rapport : erreurs ? etc ?
-    def accept_commands(self, msgObj: MessageFifre) -> MessageFifre:
-        content = msgObj.content
-        orders_str = content.split('\n')
-        for order_str in orders_str:
-            print(order_str)
-
-        msg_report: MessageFifre = None
-        return msg_report
 
 
     def execute_order(self) -> None:
