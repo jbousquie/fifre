@@ -1,8 +1,8 @@
 # Classe Dispatcher
 
 # Le dispatcher récupère les messages des transports/clients, les analyse et les transforme en ordres pour les sous-fifres
-from pprint import PrettyPrinter
-from typing import List
+from typing import List, Tuple
+import importlib
 from messageFifre import MessageFifre
 from transports.gmailTransport import GmailTransport
 
@@ -54,12 +54,17 @@ class Dispatcher:
         domain = (msgObj.subject).lower()
 
         orders_str = content.split('\n')
-        for order_str in orders_str:
-            print(order_str)
+        if len(orders_str) > 0:
 
-        # ssfifre = SousFifre(self, domain)
-        # ssfifre_report = ssfifre.accept_commands(msgObj)
+            # Création du sous-fifre spécialisé dans le domaine
+            ssfifre = SousFifre(self, domain)
+            for order_str in orders_str:
+                if len(order_str) > 0 :
+                    order = Order(msgObj, order_str)
+                    if ssfifre.parse_order(order):
+                        ssfifre.execute_order(order)
 
+        # Message de réponse éventuel ?
         responseDate = Tools.stringNow()    
         msgId = Tools.generate_unique_id()
         msgText = "voici ma réponse"
@@ -75,26 +80,12 @@ class Dispatcher:
         return
 
 
-    # Gestion des sous-fifres
-    # -----------------------
-
-
-    # enregistre les sous-fifres connus dans la liste
-    def enroll_ssFifres(self) -> None:
-        return
-
-    # ordres donnés au sous-fifre
-    def order(self) -> None:
-        return
-
-    # sauve un ordre dans la liste des ordres transmis au sous-fifre
-    def store_order(self) -> None:
-        return
-
-    # retire un ordre sauvé de la liste des ordres transmis
-    def remove_order(self) -> None:
-        return
-    
+# Classe Order
+# ordre unique transmis du dispatcher au sous-fifre
+class Order:
+    def __init__(self, command: MessageFifre, orderStr: str) -> None:
+        self.command = command
+        self.orderStr = orderStr
 
 
 
@@ -103,17 +94,32 @@ class Dispatcher:
 # et lancer son exécution asynchrone
 class SousFifre:
 
+    ssfifres_path = 'ssfifres.'
+
     def __init__(self, dispatcher: Dispatcher, domain: str):
         self.dispatcher: Dispatcher = dispatcher
         self.domain: str = domain
+        module_name = 'ssfifres.' + domain
+        self.imported_module = importlib.import_module(module_name)
+        self.specialized = self.imported_module.Specialized()
         return
 
+    def parse_order(self, order: Order) -> Tuple[bool, str]:
+        order_str = order.orderStr
+        parsed, msg = self.specialized.parse_order(order_str)
+        return parsed, msg
 
-    def execute_order(self) -> None:
+
+    def execute_order(self, order: Order) -> None:
+        order_str = order.orderStr
+        executed = self.specialized.execute_order(order_str)
         return
     
     def report_dispatcher(self) -> None:
         return
+
+
+
 
 
 
@@ -126,6 +132,8 @@ class Fifre:
 
     # constructeur
     def __init__(self) -> None:
+        # récupérer et traiter en premier lieu les retours des sous-fifres ?
+
         self.dispatcher: Dispatcher = Dispatcher(self)
         gmt: GmailTransport = GmailTransport(self.dispatcher)
         gmt.getMails()
